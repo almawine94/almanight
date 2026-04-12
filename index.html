@@ -784,23 +784,51 @@
       // Use Stripe Checkout
       var stripe = Stripe('pk_live_51TLCBeCyQCzgzwsMOap7UFVWOYeWuHQYj05MbIsWK2q2DnsXgCJgHZJDKO7Dmvp09rPb4x3ARX78dqfVBHh2VKYT00wrLB2f7v');
       
-      // Redirect to Stripe payment page
-      stripe.redirectToCheckout({
-        lineItems: [],
-        mode: 'payment',
-        successUrl: window.location.origin + '?success=true',
-        cancelUrl: window.location.origin + '?canceled=true',
-      }).then(function(result) {
-        if (result.error) {
-          showToast('⚠️ Erreur: ' + result.error.message);
-        }
-      });
-    } catch(err) {
-      // Fallback: show order summary and ask to pay via other method
-      showToast('⚠️ Erreur de paiement, réessaie');
-      console.error(err);
+      // ═══════════════════════════════════════
+    // STRIPE CHECKOUT (SÉCURISÉ)
+    // ═══════════════════════════════════════
+    var freeText = document.getElementById('freeOrderText').value.trim();
+    var notesVal = document.getElementById('ckNotes').value.trim();
+    
+    var itemsList = [];
+    for(var id in cart){
+      var item = cart[id];
+      itemsList.push({ name: item.name, price: item.price, qty: item.qty });
     }
-  });
+    
+    document.querySelector('.ck-submit').disabled = true;
+    document.querySelector('.ck-submit').textContent = '⏳ REDIRECTION...';
+    
+    fetch('/.netlify/functions/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: itemsList,
+        delivery: DELIVERY,
+        freeOrder: freeText,
+        customerName: name,
+        customerPhone: phone,
+        customerAddress: addr,
+        customerCity: city,
+        customerNotes: notesVal
+      })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if(data.url) {
+        window.location.href = data.url;
+      } else {
+        showToast('⚠️ Erreur de paiement, réessaie');
+        document.querySelector('.ck-submit').disabled = false;
+        document.querySelector('.ck-submit').textContent = '💳 PAYER MAINTENANT';
+      }
+    })
+    .catch(function(err) {
+      console.error(err);
+      showToast('⚠️ Erreur de connexion, réessaie');
+      document.querySelector('.ck-submit').disabled = false;
+      document.querySelector('.ck-submit').textContent = '💳 PAYER MAINTENANT';
+    });
 
   function showToast(msg){
     toastEl.textContent = msg;
