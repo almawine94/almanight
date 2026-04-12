@@ -1,0 +1,26 @@
+{
+  "name": "AlmaNight - Épicerie de Nuit",
+  "short_name": "AlmaNight",
+  "description": "Épicerie de nuit avec livraison à domicile dans les Yvelines. Ouvert de 19h à 4h du matin.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#f5c518",
+  "lang": "fr",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
