@@ -1,6 +1,6 @@
 {
-  "name": "AlmaNight - Épicerie de Nuit",
-  "short_name": "AlmaNight",
+  "name": "StreetNight - Épicerie de Nuit",
+  "short_name": "StreetNight",
   "description": "Épicerie de nuit avec livraison à domicile dans les Yvelines.",
   "start_url": "/",
   "display": "standalone",
