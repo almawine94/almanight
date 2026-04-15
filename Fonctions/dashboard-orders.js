@@ -40,7 +40,8 @@ exports.handler = async function(event) {
           client_notes: meta.client_notes || '',
           free_order: meta.free_order || '',
           suggestion: meta.suggestion || '',
-          description: pi.description || ''
+          description: pi.description || '',
+          articles: meta.articles || ''
         });
       }
     });
