@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreetNight — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d1e;--card:#1a1a2e;--yellow:#f5c518;--pink:#e84393;--green:#2ecc40;--blue:#00b4d8;--light:rgba(240,230,211,0.85);--border:rgba(245,197,24,0.15)
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--light);font-family:'Oswald',sans-serif;min-height:100vh}
+  
+  /* LOGIN */
+  .login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:20px}
+  .login-screen h1{font-family:'Bebas Neue',cursive;font-size:2.5rem;letter-spacing:6px;color:var(--yellow)}
+  .login-screen h1 span{color:var(--pink)}
+  .login-screen input{background:rgba(255,255,255,0.05);border:1px solid var(--border);padding:14px 20px;font-size:1rem;color:var(--light);font-family:'Oswald',sans-serif;width:300px;text-align:center;outline:none;transition:border .3s}
+  .login-screen input:focus{border-color:var(--yellow)}
+  .login-screen input::placeholder{color:rgba(240,230,211,0.3)}
+  .login-screen button{background:linear-gradient(135deg,var(--yellow),#e8a800);color:#0d0d1e;border:none;padding:14px 40px;font-family:'Bebas Neue',cursive;font-size:1.3rem;letter-spacing:3px;cursor:pointer;transition:transform .2s}
+  .login-screen button:hover{transform:scale(1.05)}
+  .login-err{color:var(--pink);font-size:0.9rem;min-height:20px}
+
+  /* DASHBOARD */
+  .dashboard{display:none;padding:20px;max-width:900px;margin:0 auto}
+  .dash-header{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:30px}
+  .dash-header h1{font-family:'Bebas Neue',cursive;font-size:2rem;letter-spacing:5px;color:var(--yellow)}
+  .dash-header h1 span{color:var(--pink)}
+  .dash-header button{background:none;border:1px solid var(--pink);color:var(--pink);padding:8px 20px;font-family:'Oswald',sans-serif;cursor:pointer;transition:all .3s}
+  .dash-header button:hover{background:var(--pink);color:#fff}
+  
+  .dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:30px}
+  .stat-box{background:var(--card);border:1px solid var(--border);padding:20px;text-align:center}
+  .stat-num{font-family:'Bebas Neue',cursive;font-size:2.5rem;color:var(--yellow)}
+  .stat-label{font-weight:300;font-size:0.85rem;color:rgba(240,230,211,0.5);text-transform:uppercase;letter-spacing:2px}
+
+  .refresh-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .refresh-bar button{background:linear-gradient(135deg,var(--blue),#0090b0);color:#fff;border:none;padding:10px 25px;font-family:'Oswald',sans-serif;cursor:pointer;font-size:0.95rem;transition:opacity .3s}
+  .refresh-bar button:hover{opacity:0.8}
+  .refresh-bar span{font-weight:300;font-size:0.8rem;color:rgba(240,230,211,0.4)}
+
+  .order-card{background:var(--card);border:1px solid var(--border);margin-bottom:15px;overflow:hidden;transition:border-color .3s}
+  .order-card:hover{border-color:rgba(245,197,24,0.4)}
+  .order-top{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;cursor:pointer}
+  .order-client{font-weight:600;font-size:1.1rem}
+  .order-amount{font-family:'Bebas Neue',cursive;font-size:1.4rem;color:var(--green)}
+  .order-time{font-weight:300;font-size:0.8rem;color:rgba(240,230,211,0.4)}
+  .order-status{font-size:0.75rem;padding:4px 12px;border-radius:2px;text-transform:uppercase;letter-spacing:1px}
+  .status-paid{background:rgba(46,204,64,0.15);color:var(--green)}
+  .status-pending{background:rgba(245,197,24,0.15);color:var(--yellow)}
+  
+  .order-details{display:none;padding:0 20px 20px;border-top:1px solid var(--border)}
+  .order-details.open{display:block}
+  .detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-weight:300;font-size:0.9rem}
+  .detail-label{color:rgba(240,230,211,0.5)}
+  .detail-items{margin:10px 0}
+  .detail-items div{padding:4px 0;font-weight:300;font-size:0.9rem}
+  .detail-free{margin-top:10px;padding:10px;background:rgba(0,180,216,0.08);border-left:3px solid var(--blue);font-weight:300;font-size:0.9rem}
+  .detail-suggestion{margin-top:8px;padding:10px;background:rgba(232,67,147,0.08);border-left:3px solid var(--pink);font-weight:300;font-size:0.9rem}
+
+  .loading{text-align:center;padding:60px;color:rgba(240,230,211,0.3);font-size:1.1rem}
+  .no-orders{text-align:center;padding:60px;color:rgba(240,230,211,0.3)}
+
+  @media(max-width:600px){
+    .dash-stats{grid-template-columns:1fr}
+    .order-top{flex-wrap:wrap;gap:8px}
+    .dashboard{padding:10px}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <h1>STREET<span>NIGHT</span></h1>
+  <div style="font-weight:300;color:rgba(240,230,211,0.4);letter-spacing:2px;font-size:0.85rem;text-transform:uppercase;margin-bottom:10px">Dashboard Employé</div>
+  <input type="password" id="pwdInput" placeholder="Mot de passe" onkeypress="if(event.key==='Enter')doLogin()">
+  <button onclick="doLogin()">CONNEXION</button>
+  <div class="login-err" id="loginErr"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="dash-header">
+    <h1>STREET<span>NIGHT</span> — COMMANDES</h1>
+    <button onclick="doLogout()">DÉCONNEXION</button>
+  </div>
+
+  <div class="dash-stats">
+    <div class="stat-box"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Commandes aujourd'hui</div></div>
+    <div class="stat-box"><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Chiffre du jour</div></div>
+    <div class="stat-box"><div class="stat-num" id="statPending">—</div><div class="stat-label">En attente</div></div>
+  </div>
+
+  <div class="refresh-bar">
+    <button onclick="loadOrders()">🔄 RAFRAÎCHIR</button>
+    <span id="lastRefresh"></span>
+  </div>
+
+  <div id="ordersList">
+    <div class="loading">Chargement des commandes...</div>
+  </div>
+</div>
+
+<script>
+var CORRECT_HASH = null;
+
+async function hashPassword(pwd) {
+  var enc = new TextEncoder();
+  var data = enc.encode(pwd);
+  var buf = await crypto.subtle.digest('SHA-256', data);
+  var arr = Array.from(new Uint8Array(buf));
+  return arr.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+async function doLogin() {
+  var pwd = document.getElementById('pwdInput').value.trim();
+  if (!pwd) return;
+  
+  try {
+    var res = await fetch('/.netlify/functions/dashboard-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    var data = await res.json();
+    if (data.success) {
+      sessionStorage.setItem('dash_token', data.token);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadOrders();
+    } else {
+      document.getElementById('loginErr').textContent = '❌ Mot de passe incorrect';
+    }
+  } catch(e) {
+    document.getElementById('loginErr').textContent = '⚠️ Erreur de connexion';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('dash_token');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('pwdInput').value = '';
+  document.getElementById('loginErr').textContent = '';
+}
+
+async function loadOrders() {
+  var token = sessionStorage.getItem('dash_token');
+  if (!token) { doLogout(); return; }
+  
+  document.getElementById('ordersList').innerHTML = '<div class="loading">Chargement...</div>';
+  
+  try {
+    var res = await fetch('/.netlify/functions/dashboard-orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token })
+    });
+    var data = await res.json();
+    
+    if (data.error) { doLogout(); return; }
+    
+    renderOrders(data.orders || []);
+    document.getElementById('lastRefresh').textContent = 'Dernière mise à jour : ' + new Date().toLocaleTimeString('fr-FR');
+  } catch(e) {
+    document.getElementById('ordersList').innerHTML = '<div class="no-orders">⚠️ Erreur de chargement</div>';
+  }
+}
+
+function renderOrders(orders) {
+  if (orders.length === 0) {
+    document.getElementById('ordersList').innerHTML = '<div class="no-orders">Aucune commande récente</div>';
+    document.getElementById('statTotal').textContent = '0';
+    document.getElementById('statRevenue').textContent = '0€';
+    document.getElementById('statPending').textContent = '0';
+    return;
+  }
+
+  var today = new Date().toDateString();
+  var todayOrders = orders.filter(function(o){ return new Date(o.created * 1000).toDateString() === today; });
+  var revenue = todayOrders.reduce(function(sum, o){ return sum + o.amount; }, 0);
+  
+  document.getElementById('statTotal').textContent = todayOrders.length;
+  document.getElementById('statRevenue').textContent = revenue.toFixed(2) + '€';
+  document.getElementById('statPending').textContent = todayOrders.filter(function(o){ return o.status === 'pending'; }).length;
+
+  var html = '';
+  orders.forEach(function(order, i) {
+    var date = new Date(order.created * 1000);
+    var timeStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    var statusClass = order.status === 'succeeded' ? 'status-paid' : 'status-pending';
+    var statusText = order.status === 'succeeded' ? '✅ PAYÉ' : '⏳ EN ATTENTE';
+    
+    html += '<div class="order-card">';
+    html += '<div class="order-top" onclick="toggleOrder('+i+')">';
+    html += '<div><div class="order-client">'+( order.client_name || 'Client inconnu')+'</div><div class="order-time">'+timeStr+'</div></div>';
+    html += '<div style="text-align:right"><div class="order-amount">'+order.amount.toFixed(2)+'€</div><div class="order-status '+statusClass+'">'+statusText+'</div></div>';
+    html += '</div>';
+    html += '<div class="order-details" id="orderDetail'+i+'">';
+    html += '<div class="detail-row"><span class="detail-label">📞 Téléphone</span><span>'+(order.client_phone || '—')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">📍 Adresse</span><span>'+(order.client_address || '—')+'</span></div>';
+    
+    if (order.description) {
+      html += '<div class="detail-row"><span class="detail-label">📦 Détails</span><span>'+order.description+'</span></div>';
+    }
+    if (order.client_notes) {
+      html += '<div class="detail-row"><span class="detail-label">📝 Notes</span><span>'+order.client_notes+'</span></div>';
+    }
+    if (order.free_order) {
+      html += '<div class="detail-free">✍️ Commande libre : '+order.free_order+'</div>';
+    }
+    if (order.suggestion) {
+      html += '<div class="detail-suggestion">💡 Suggestion : '+order.suggestion+'</div>';
+    }
+    html += '</div></div>';
+  });
+  
+  document.getElementById('ordersList').innerHTML = html;
+}
+
+function toggleOrder(i) {
+  var el = document.getElementById('orderDetail' + i);
+  el.classList.toggle('open');
+}
+
+// Auto-check session
+if (sessionStorage.getItem('dash_token')) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadOrders();
+}
+
+// Auto-refresh every 30 seconds
+setInterval(function(){
+  if (document.getElementById('dashboard').style.display === 'block') {
+    loadOrders();
+  }
+}, 30000);
+</script>
+</body>
+</html>
